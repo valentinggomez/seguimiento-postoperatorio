@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   const data = await req.json();
 
   // Buscar datos del paciente
-  const pacientesPath = path.join(process.cwd(), 'data', 'pacientes.json');
+  const pacientesPath = path.join(process.cwd(), 'public', 'pacientes.json');
   const pacientes = JSON.parse(fs.readFileSync(pacientesPath, 'utf-8'));
   const paciente = pacientes.find((p: any) => p.id === data.pacienteId);
 
