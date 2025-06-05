@@ -2,36 +2,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
-const filePath = path.join(process.cwd(), 'public', 'pacientes.json');
-
 export async function POST(req: NextRequest) {
-  const nuevoPaciente = await req.json();
+  const data = await req.json();
 
-  const pacientesExistentes = fs.existsSync(filePath)
-    ? JSON.parse(fs.readFileSync(filePath, 'utf-8'))
-    : [];
+  const pacientesPath = path.join(process.cwd(), 'public', 'pacientes.json');
 
-  pacientesExistentes.push(nuevoPaciente);
+  try {
+    const pacientes = JSON.parse(fs.readFileSync(pacientesPath, 'utf-8'));
 
-  fs.writeFileSync(filePath, JSON.stringify(pacientesExistentes, null, 2));
+    const nuevoPaciente = {
+      id: crypto.randomUUID(),
+      ...data,
+    };
 
-  return NextResponse.json({ ok: true });
-}
+    pacientes.push(nuevoPaciente);
+    fs.writeFileSync(pacientesPath, JSON.stringify(pacientes, null, 2));
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get('id');
+    return NextResponse.json({ ok: true, id: nuevoPaciente.id });
 
-  if (!id) {
-    return NextResponse.json(null);
+  } catch (error) {
+    console.error("❌ Error al guardar paciente:", error);
+    return NextResponse.json({ ok: false, error: 'No se pudo guardar el paciente' }, { status: 500 });
   }
-
-  const filePath = path.join(process.cwd(), 'data', 'pacientes.json');
-  const pacientes = fs.existsSync(filePath)
-    ? JSON.parse(fs.readFileSync(filePath, 'utf-8'))
-    : [];
-
-  const paciente = pacientes.find((p: any) => p.id === id);
-
-  return NextResponse.json(paciente || null);
 }
