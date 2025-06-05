@@ -1,68 +1,82 @@
-// @ts-ignore
-const { google } = require('googleapis');
-import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
- 
-const SHEET_ID = '1cSWp5jBz2nLSMbWbbontNNODSLGclN8TOVxh-TmV3aY';
-const SHEET_NAME = 'Seguimiento';
+import { google } from "googleapis";
+import { createClient } from '@supabase/supabase-js';
 
-// @ts-ignore
-const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS!);
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_KEY!
+);
 
-export async function POST(req: NextRequest) {
-  const data = await req.json();
-
-  // Buscar datos del paciente
-  const pacientesUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/pacientes.json`;
-  const pacientesRes = await fetch(pacientesUrl);
-  const pacientes = await pacientesRes.json();
-  const paciente = pacientes.find((p: any) => p.id === data.pacienteId);
-
-  if (!paciente) {
-    return NextResponse.json({ ok: false, error: 'Paciente no encontrado' });
-  }
-
+export async function POST(req: Request) {
   try {
+    let body;
+      try {
+        body = await req.json();
+    } catch (err) {
+      console.error("❌ Error al parsear JSON:", err);
+      return new Response("JSON inválido o vacío", { status: 400 });
+    }
+    if (!body || typeof body !== 'object') {
+      return new Response("Cuerpo vacío o inválido", { status: 400 });
+    }
+
+    const { pacienteId, ...respuestas } = body;
+
+    // ✅ 1. Buscar paciente desde Supabase
+    const { data: paciente, error } = await supabase
+      .from('pacientes')
+      .select('*')
+      .eq('id', pacienteId)
+      .single();
+
+    if (error || !paciente) {
+      console.error("Paciente no encontrado:", error);
+      return new Response("Paciente no encontrado", { status: 404 });
+    }
+
+    // ✅ 2. Autenticarse con Google Sheets
     const auth = new google.auth.GoogleAuth({
-      credentials,
-      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+      credentials: {
+        client_email: process.env.GOOGLE_CLIENT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      },
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
     });
 
-    const sheets = google.sheets({ version: 'v4', auth });
+    const sheets = google.sheets({ version: "v4", auth });
 
+    // ✅ 3. Armar fila con datos del paciente + respuestas
+    const fila = [
+      new Date().toLocaleString("es-AR"),
+      paciente.id,
+      paciente.nombre,
+      paciente.dni,
+      paciente.telefono,
+      paciente.cirugia,
+      paciente.fecha,
+      respuestas.dolor6h,
+      respuestas.dolor24h,
+      respuestas.dolorMayor7,
+      respuestas.nauseas,
+      respuestas.vomitos,
+      respuestas.somnolencia,
+      respuestas.medicacionExtra,
+      respuestas.despertoPorDolor,
+      respuestas.quiereSeguimiento,
+      respuestas.satisfaccion,
+      respuestas.observaciones,
+    ];
+
+    // ✅ 4. Insertar fila en Google Sheets
     await sheets.spreadsheets.values.append({
-      spreadsheetId: SHEET_ID,
-      range: `${SHEET_NAME}!A1`,
-      valueInputOption: 'USER_ENTERED',
-      requestBody: {
-        values: [[
-          paciente.id,
-          paciente.nombre,
-          paciente.dni,
-          paciente.telefono,
-          paciente.cirugia,
-          paciente.fecha,
-          data.dolor6h,
-          data.dolor24h,
-          data.dolorMayor7,
-          data.nauseas,
-          data.vomitos,
-          data.somnolencia,
-          data.medicacionExtra,
-          data.despertoPorDolor,
-          data.quiereSeguimiento,
-          data.satisfaccion,
-          data.observaciones,
-          new Date().toLocaleString('es-AR')
-        ]]
-      }
+      spreadsheetId: process.env.SHEET_ID,
+      range: process.env.SHEET_NAME || "Respuestas!A1",
+      valueInputOption: "USER_ENTERED",
+      requestBody: { values: [fila] },
     });
 
-    return NextResponse.json({ ok: true });
-
+    return new Response("Guardado correctamente", { status: 200 });
   } catch (err) {
-    console.error('❌ ERROR al guardar en Google Sheets:', err);
-    return NextResponse.json({ ok: false, error: 'Error al guardar en Google Sheets' });
+    console.error("Error al procesar la respuesta:", err);
+    return new Response("Error al guardar", { status: 500 });
   }
 }

@@ -1,27 +1,43 @@
-import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
-export async function POST(req: NextRequest) {
-  const data = await req.json();
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_KEY!
+);
 
-  const pacientesPath = path.join(process.cwd(), 'public', 'pacientes.json');
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
 
-  try {
-    const pacientes = JSON.parse(fs.readFileSync(pacientesPath, 'utf-8'));
-
-    const nuevoPaciente = {
-      id: crypto.randomUUID(),
-      ...data,
-    };
-
-    pacientes.push(nuevoPaciente);
-    fs.writeFileSync(pacientesPath, JSON.stringify(pacientes, null, 2));
-
-    return NextResponse.json({ ok: true, id: nuevoPaciente.id });
-
-  } catch (error) {
-    console.error("❌ Error al guardar paciente:", error);
-    return NextResponse.json({ ok: false, error: 'No se pudo guardar el paciente' }, { status: 500 });
+  if (!id) {
+    return new Response(JSON.stringify({ error: 'ID faltante' }), { status: 400 });
   }
+
+  const { data, error } = await supabase
+    .from('pacientes')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    console.error(error);
+    return new Response(JSON.stringify({ error: 'No encontrado' }), { status: 404 });
+  }
+
+  return new Response(JSON.stringify(data), { status: 200 });
+}
+
+export async function POST(request: Request) {
+  const paciente = await request.json();
+
+  const { data, error } = await supabase
+    .from('pacientes')
+    .insert([paciente]);
+
+  if (error) {
+    console.error(error);
+    return new Response(JSON.stringify({ error: 'Error al guardar paciente' }), { status: 500 });
+  }
+
+  return new Response(JSON.stringify({ success: true, data }), { status: 200 });
 }
