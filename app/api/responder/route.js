@@ -2,11 +2,11 @@ import { google } from "googleapis";
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
 );
 
-export async function POST(req: Request) {
+export async function POST(req) {
   let body;
   try {
     body = await req.json();
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
       respuestas.observaciones,
     ];
 
-    const sheetId = process.env.SHEET_ID!;
+    const sheetId = process.env.SHEET_ID;
     const sheetName = process.env.SHEET_NAME || "Seguimiento!A1";
 
     const result = await sheets.spreadsheets.values.append({

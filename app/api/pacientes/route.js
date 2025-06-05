@@ -1,11 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
 );
 
-export async function GET(request: Request) {
+export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
 
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
   return new Response(JSON.stringify(data), { status: 200 });
 }
 
-export async function POST(request: Request) {
+export async function POST(request) {
   const paciente = await request.json();
 
   const { data, error } = await supabase
