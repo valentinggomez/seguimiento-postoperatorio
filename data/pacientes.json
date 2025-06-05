@@ -1,0 +1,66 @@
+[
+  {
+    "id": "fd053efc-99c1-436b-8207-875591613984",
+    "nombre": "Giuliano",
+    "dni": "45379436",
+    "telefono": "1134567890",
+    "cirugia": "AAA",
+    "fecha": "2025-06-05"
+  },
+  {
+    "id": "89c0eb72-30d3-4058-9499-708a64edeb67",
+    "nombre": "Giuliano",
+    "dni": "4654874",
+    "telefono": "5429546576418",
+    "cirugia": "AAA",
+    "fecha": "2025-06-05"
+  },
+  {
+    "id": "40dbd376-44c1-4768-b170-421a91f6e8cf",
+    "nombre": "Giuliano",
+    "dni": "45379436",
+    "telefono": "5429546576418",
+    "cirugia": "AAA",
+    "fecha": "2025-06-05"
+  },
+  {
+    "id": "3a3609f4-8073-45c4-85e5-44ef1d0c2032",
+    "nombre": "cza",
+    "dni": "4654874",
+    "telefono": "5429546576418",
+    "cirugia": "AAA",
+    "fecha": "2025-06-05"
+  },
+  {
+    "id": "f05d4c1d-e6c4-4f50-a85d-9fd2aaa80d2f",
+    "nombre": "Giuliano",
+    "dni": "45379436",
+    "telefono": "5429546554544",
+    "cirugia": "AAA",
+    "fecha": "2025-06-05"
+  },
+  {
+    "id": "0624a405-64e0-4c30-97d0-a7d1571dd4ad",
+    "nombre": "Giuliano",
+    "dni": "45379434",
+    "telefono": "5429546554544",
+    "cirugia": "AAA",
+    "fecha": "2025-06-05"
+  },
+  {
+    "id": "8040ef42-8219-4b2d-84f4-bebe8d8bbf0a",
+    "nombre": "Giuliano",
+    "dni": "45379436",
+    "telefono": "542954657641",
+    "cirugia": "AAA",
+    "fecha": "2025-06-05"
+  },
+  {
+    "id": "f46c3ccd-242e-4281-a4c5-59890b73f987",
+    "nombre": "Ramiro",
+    "dni": "45379434",
+    "telefono": "542954657641",
+    "cirugia": "AAA",
+    "fecha": "2025-06-05"
+  }
+]
