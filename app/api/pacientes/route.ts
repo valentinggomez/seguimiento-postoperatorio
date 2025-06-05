@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
-const filePath = path.join(process.cwd(), 'data', 'pacientes.json');
+const filePath = path.join(process.cwd(), 'public', 'pacientes.json');
 
 export async function POST(req: NextRequest) {
   const nuevoPaciente = await req.json();
