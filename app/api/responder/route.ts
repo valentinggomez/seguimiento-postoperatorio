@@ -7,33 +7,32 @@ const supabase = createClient(
 );
 
 export async function POST(req: Request) {
+  let body;
   try {
-    let body;
-      try {
-        body = await req.json();
-    } catch (err) {
-      console.error("❌ Error al parsear JSON:", err);
-      return new Response("JSON inválido o vacío", { status: 400 });
-    }
-    if (!body || typeof body !== 'object') {
-      return new Response("Cuerpo vacío o inválido", { status: 400 });
-    }
+    body = await req.json();
+  } catch (err) {
+    console.error("❌ Error al parsear JSON:", err);
+    return new Response("JSON inválido", { status: 400 });
+  }
 
-    const { pacienteId, ...respuestas } = body;
+  const { pacienteId, ...respuestas } = body;
 
-    // ✅ 1. Buscar paciente desde Supabase
-    const { data: paciente, error } = await supabase
-      .from('pacientes')
-      .select('*')
-      .eq('id', pacienteId)
-      .single();
+  if (!pacienteId) {
+    return new Response("ID de paciente faltante", { status: 400 });
+  }
 
-    if (error || !paciente) {
-      console.error("Paciente no encontrado:", error);
-      return new Response("Paciente no encontrado", { status: 404 });
-    }
+  const { data: paciente, error } = await supabase
+    .from("pacientes")
+    .select("*")
+    .eq("id", pacienteId)
+    .single();
 
-    // ✅ 2. Autenticarse con Google Sheets
+  if (error || !paciente) {
+    console.error("❌ Paciente no encontrado:", error);
+    return new Response("Paciente no encontrado", { status: 404 });
+  }
+
+  try {
     const auth = new google.auth.GoogleAuth({
       credentials: {
         client_email: process.env.GOOGLE_CLIENT_EMAIL,
@@ -44,7 +43,6 @@ export async function POST(req: Request) {
 
     const sheets = google.sheets({ version: "v4", auth });
 
-    // ✅ 3. Armar fila con datos del paciente + respuestas
     const fila = [
       new Date().toLocaleString("es-AR"),
       paciente.id,
@@ -66,17 +64,21 @@ export async function POST(req: Request) {
       respuestas.observaciones,
     ];
 
-    // ✅ 4. Insertar fila en Google Sheets
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: process.env.SHEET_ID,
-      range: process.env.SHEET_NAME || "Respuestas!A1",
+    const sheetId = process.env.SHEET_ID!;
+    const sheetName = process.env.SHEET_NAME || "Seguimiento!A1";
+
+    const result = await sheets.spreadsheets.values.append({
+      spreadsheetId: sheetId,
+      range: sheetName,
       valueInputOption: "USER_ENTERED",
       requestBody: { values: [fila] },
     });
 
+    console.log("✅ Guardado en Google Sheets:", result.statusText);
     return new Response("Guardado correctamente", { status: 200 });
+
   } catch (err) {
-    console.error("Error al procesar la respuesta:", err);
-    return new Response("Error al guardar", { status: 500 });
+    console.error("❌ Error al guardar en Sheets:", err);
+    return new Response("Error al guardar en Sheets", { status: 500 });
   }
 }
