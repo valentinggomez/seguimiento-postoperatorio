@@ -2,6 +2,7 @@
 
 # Archivos de credenciales (clave privada)
 app/utils/credentials.json
+.env.local
 
 # dependencies
 /node_modules

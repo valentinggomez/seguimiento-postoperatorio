@@ -3,12 +3,23 @@ const { google } = require('googleapis');
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-
+ 
 const SHEET_ID = '1cSWp5jBz2nLSMbWbbontNNODSLGclN8TOVxh-TmV3aY';
 const SHEET_NAME = 'Seguimiento';
 
 // @ts-ignore
-import credentials from '../../utils/credentials.json';
+const credentials = {
+  type: "service_account",
+  project_id: process.env.GCP_PROJECT_ID,
+  private_key_id: process.env.GCP_PRIVATE_KEY_ID,
+  private_key: process.env.GCP_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+  client_email: process.env.GCP_CLIENT_EMAIL,
+  client_id: process.env.GCP_CLIENT_ID,
+  auth_uri: process.env.GCP_AUTH_URI,
+  token_uri: process.env.GCP_TOKEN_URI,
+  auth_provider_x509_cert_url: process.env.GCP_AUTH_PROVIDER,
+  client_x509_cert_url: process.env.GCP_CLIENT_CERT_URL,
+};
 
 export async function POST(req: NextRequest) {
   const data = await req.json();
