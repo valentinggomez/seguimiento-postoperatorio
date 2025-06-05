@@ -21,7 +21,13 @@ export default function Home() {
             .
           </li>
           <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
+            Ir al panel médico de la clínica:{" "}
+            <a
+              href="/panel-medico"
+              className="text-blue-600 hover:underline font-semibold"
+            >
+              /panel-medico
+            </a>
           </li>
         </ol>
 
